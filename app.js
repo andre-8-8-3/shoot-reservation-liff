@@ -1,4 +1,4 @@
-const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbw2qsN4iWzHVsMzbamLMM6JQo9h639qBZ4HOk22OWSiU5dSXr50oboK-OiSXvu7ODL29A/exec';
+const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyXo3HGrvTK01pvGT8qui2J4iiFbotEw6Vr3lzhJ2QRxF6p2SUWkT8Os-7dmoosY9g2_A/exec';
 
 const dates = [
   '2026/08/05',
