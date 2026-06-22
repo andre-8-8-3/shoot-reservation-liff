@@ -116,18 +116,28 @@ function createTimeout(ms) {
   });
 }
 
-async function submitReservation(payload) {
-  console.log('[reservation] submit start', payload);
+function buildReservationUrl(payload) {
+  const params = new URLSearchParams({
+    action: 'create',
+    date: payload.date,
+    time: payload.time,
+    name: payload.name,
+    note: payload.note,
+    ts: String(Date.now())
+  });
 
-  const request = fetch(GAS_WEB_APP_URL, {
-    method: 'POST',
+  return `${GAS_WEB_APP_URL}?${params.toString()}`;
+}
+
+async function submitReservation(payload) {
+  const url = buildReservationUrl(payload);
+  console.log('[reservation] submit GET', url);
+
+  const request = fetch(url, {
+    method: 'GET',
     mode: 'no-cors',
     cache: 'no-store',
-    redirect: 'follow',
-    headers: {
-      'Content-Type': 'text/plain;charset=utf-8'
-    },
-    body: JSON.stringify(payload)
+    redirect: 'follow'
   });
 
   await Promise.race([
@@ -174,7 +184,7 @@ submitButton.addEventListener('click', async () => {
     alert(
       '送信完了を確認できませんでした。\n\n' +
       'GASのWebアプリ設定、またはデプロイ版を確認してください。\n' +
-      'Apps Scriptの「実行数」にエラーが出ていないか確認してください。'
+      'まずGAS単体テストURLで保存できるか確認してください。'
     );
   } finally {
     setSubmitting(false);
