@@ -1,3 +1,5 @@
+const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbw2qsN4iWzHVsMzbamLMM6JQo9h639qBZ4HOk22OWSiU5dSXr50oboK-OiSXvu7ODL29A/exec';
+
 const dates = [
   '2026/08/05',
   '2026/08/27'
@@ -24,10 +26,12 @@ const slotsByDate = {
 
 let selectedDate = dates[0];
 let selectedTime = slotsByDate[selectedDate].find(x => x.status === 'available')?.time || '';
+let isSubmitting = false;
 
 const dateButtonsEl = document.getElementById('dateButtons');
 const slotListEl = document.getElementById('slotList');
 const nameInput = document.getElementById('name');
+const noteInput = document.getElementById('note');
 const submitButton = document.getElementById('submitButton');
 
 function createAvailableSlots() {
@@ -46,6 +50,8 @@ function renderDates() {
     button.textContent = date.replace('2026/', '').replace('/', '月') + '日';
 
     button.addEventListener('click', () => {
+      if (isSubmitting) return;
+
       selectedDate = date;
 
       const firstAvailable = slotsByDate[selectedDate].find(x => x.status === 'available');
@@ -80,6 +86,8 @@ function renderSlots() {
       `;
 
       div.addEventListener('click', () => {
+        if (isSubmitting) return;
+
         selectedTime = slot.time;
         renderSlots();
         updateConfirm();
@@ -96,14 +104,34 @@ function updateConfirm() {
   document.getElementById('confirmName').textContent = nameInput.value || '未入力';
 }
 
+function setSubmitting(submitting) {
+  isSubmitting = submitting;
+  submitButton.disabled = submitting;
+  submitButton.textContent = submitting ? '送信中...' : 'この内容で予約する';
+}
+
+async function submitReservation(payload) {
+  // GAS Webアプリは通常のCORSレスポンスヘッダーを返せないため、
+  // まずは no-cors で送信優先にしています。
+  // 成功/失敗の詳細表示は、次フェーズでJSONPまたはGAS側設計を調整します。
+  await fetch(GAS_WEB_APP_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: {
+      'Content-Type': 'text/plain;charset=utf-8'
+    },
+    body: JSON.stringify(payload)
+  });
+}
+
 nameInput.addEventListener('input', updateConfirm);
 
-submitButton.addEventListener('click', () => {
+submitButton.addEventListener('click', async () => {
   const payload = {
     date: selectedDate,
     time: selectedTime,
     name: nameInput.value.trim(),
-    note: document.getElementById('note').value.trim()
+    note: noteInput.value.trim()
   };
 
   if (!payload.time) {
@@ -116,14 +144,23 @@ submitButton.addEventListener('click', () => {
     return;
   }
 
-  console.log(payload);
+  try {
+    setSubmitting(true);
+    await submitReservation(payload);
 
-  alert(
-    '予約内容\n\n' +
-    '日付：' + payload.date + '\n' +
-    '時間：' + payload.time + '\n' +
-    '名前：' + payload.name
-  );
+    alert(
+      '予約を送信しました。\n\n' +
+      '日付：' + payload.date + '\n' +
+      '時間：' + payload.time + '\n' +
+      '名前：' + payload.name + '\n\n' +
+      'スプレッドシートに反映されているか確認してください。'
+    );
+  } catch (error) {
+    console.error(error);
+    alert('送信に失敗しました。通信環境を確認して、もう一度お試しください。');
+  } finally {
+    setSubmitting(false);
+  }
 });
 
 renderDates();
