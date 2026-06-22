@@ -145,12 +145,6 @@ function setSubmitting(submitting) {
   submitButton.textContent = submitting ? '送信中...' : 'この内容で予約する';
 }
 
-function createTimeout(ms) {
-  return new Promise((_, reject) => {
-    setTimeout(() => reject(new Error('通信がタイムアウトしました。')), ms);
-  });
-}
-
 function buildApiUrl(paramsObject) {
   const params = new URLSearchParams({
     ...paramsObject,
@@ -176,17 +170,37 @@ function buildSlotsUrl() {
   });
 }
 
-async function fetchJsonWithTimeout(url) {
-  const request = fetch(url, {
-    method: 'GET',
-    cache: 'no-store',
-    redirect: 'follow'
-  }).then(response => response.json());
+function requestJsonp(url) {
+  return new Promise((resolve, reject) => {
+    const callbackName = `jsonpCallback_${Date.now()}_${Math.floor(Math.random() * 100000)}`;
+    const separator = url.includes('?') ? '&' : '?';
+    const script = document.createElement('script');
+    const timeoutId = window.setTimeout(() => {
+      cleanup();
+      reject(new Error('通信がタイムアウトしました。'));
+    }, 10000);
 
-  return Promise.race([
-    request,
-    createTimeout(10000)
-  ]);
+    function cleanup() {
+      window.clearTimeout(timeoutId);
+      delete window[callbackName];
+      if (script.parentNode) {
+        script.parentNode.removeChild(script);
+      }
+    }
+
+    window[callbackName] = data => {
+      cleanup();
+      resolve(data);
+    };
+
+    script.onerror = () => {
+      cleanup();
+      reject(new Error('GASとの通信に失敗しました。'));
+    };
+
+    script.src = `${url}${separator}callback=${encodeURIComponent(callbackName)}`;
+    document.body.appendChild(script);
+  });
 }
 
 async function loadSlots() {
@@ -195,7 +209,7 @@ async function loadSlots() {
   setSubmitting(false);
 
   try {
-    const data = await fetchJsonWithTimeout(buildSlotsUrl());
+    const data = await requestJsonp(buildSlotsUrl());
 
     if (!data || !data.ok) {
       throw new Error(data && data.message ? data.message : '予約枠の取得に失敗しました。');
@@ -219,7 +233,7 @@ async function loadSlots() {
 
   } catch (error) {
     console.error('[reservation] slots error', error);
-    alert('予約枠の取得に失敗しました。GASの?action=initが完了しているか確認してください。');
+    alert('予約枠の取得に失敗しました。GASのJSONP対応版が再デプロイされているか確認してください。');
   } finally {
     isLoadingSlots = false;
     renderDates();
@@ -231,9 +245,9 @@ async function loadSlots() {
 
 async function submitReservation(payload) {
   const url = buildReservationUrl(payload);
-  console.log('[reservation] submit GET', url);
+  console.log('[reservation] submit JSONP', url);
 
-  const data = await fetchJsonWithTimeout(url);
+  const data = await requestJsonp(url);
 
   if (!data || !data.ok) {
     throw new Error(data && data.message ? data.message : '予約に失敗しました。');
