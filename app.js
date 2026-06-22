@@ -3,21 +3,23 @@ const dates = [
   '2026/08/27'
 ];
 
+const slotTimes = [
+  '13:00',
+  '13:30',
+  '14:00',
+  '14:30',
+  '15:00',
+  '15:30',
+  '16:00',
+  '16:30',
+  '17:00',
+  '17:30',
+  '18:00'
+];
+
 const slotsByDate = {
-  '2026/08/05': [
-    { time: '15:00', status: 'available' },
-    { time: '15:30', status: 'available' },
-    { time: '16:00', status: 'reserved' },
-    { time: '16:30', status: 'available' },
-    { time: '17:00', status: 'available' }
-  ],
-  '2026/08/27': [
-    { time: '15:00', status: 'available' },
-    { time: '15:30', status: 'reserved' },
-    { time: '16:00', status: 'available' },
-    { time: '16:30', status: 'available' },
-    { time: '17:00', status: 'available' }
-  ]
+  '2026/08/05': createAvailableSlots(),
+  '2026/08/27': createAvailableSlots()
 };
 
 let selectedDate = dates[0];
@@ -27,6 +29,13 @@ const dateButtonsEl = document.getElementById('dateButtons');
 const slotListEl = document.getElementById('slotList');
 const nameInput = document.getElementById('name');
 const submitButton = document.getElementById('submitButton');
+
+function createAvailableSlots() {
+  return slotTimes.map(time => ({
+    time,
+    status: 'available'
+  }));
+}
 
 function renderDates() {
   dateButtonsEl.innerHTML = '';
@@ -96,6 +105,11 @@ submitButton.addEventListener('click', () => {
     name: nameInput.value.trim(),
     note: document.getElementById('note').value.trim()
   };
+
+  if (!payload.time) {
+    alert('時間を選択してください。');
+    return;
+  }
 
   if (!payload.name) {
     alert('名前を入力してください。');
