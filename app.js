@@ -110,18 +110,32 @@ function setSubmitting(submitting) {
   submitButton.textContent = submitting ? '送信中...' : 'この内容で予約する';
 }
 
+function createTimeout(ms) {
+  return new Promise((_, reject) => {
+    setTimeout(() => reject(new Error('送信がタイムアウトしました。')), ms);
+  });
+}
+
 async function submitReservation(payload) {
-  // GAS Webアプリは通常のCORSレスポンスヘッダーを返せないため、
-  // まずは no-cors で送信優先にしています。
-  // 成功/失敗の詳細表示は、次フェーズでJSONPまたはGAS側設計を調整します。
-  await fetch(GAS_WEB_APP_URL, {
+  console.log('[reservation] submit start', payload);
+
+  const request = fetch(GAS_WEB_APP_URL, {
     method: 'POST',
     mode: 'no-cors',
+    cache: 'no-store',
+    redirect: 'follow',
     headers: {
       'Content-Type': 'text/plain;charset=utf-8'
     },
     body: JSON.stringify(payload)
   });
+
+  await Promise.race([
+    request,
+    createTimeout(8000)
+  ]);
+
+  console.log('[reservation] submit finished');
 }
 
 nameInput.addEventListener('input', updateConfirm);
@@ -156,8 +170,12 @@ submitButton.addEventListener('click', async () => {
       'スプレッドシートに反映されているか確認してください。'
     );
   } catch (error) {
-    console.error(error);
-    alert('送信に失敗しました。通信環境を確認して、もう一度お試しください。');
+    console.error('[reservation] submit error', error);
+    alert(
+      '送信完了を確認できませんでした。\n\n' +
+      'GASのWebアプリ設定、またはデプロイ版を確認してください。\n' +
+      'Apps Scriptの「実行数」にエラーが出ていないか確認してください。'
+    );
   } finally {
     setSubmitting(false);
   }
