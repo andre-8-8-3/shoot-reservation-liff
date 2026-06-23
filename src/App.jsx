@@ -40,6 +40,14 @@ export default function App() {
     return groupByDate(filteredSlots);
   }, [filteredSlots]);
 
+  const moveCandidates = useMemo(() => {
+    if (!selectedSlot) return [];
+
+    return slots.filter((slot) => {
+      return slot.status === "available" || slot.row === selectedSlot.row;
+    });
+  }, [selectedSlot, slots]);
+
   useEffect(() => {
     initialize();
   }, []);
@@ -84,25 +92,15 @@ export default function App() {
     }
   }
 
-function openSlot(slot) {
-  if (slot.status === "reserved") {
-    showToast("この枠は予約済みです");
-    return;
-  }
-
-  setSelectedSlot(slot);
-  setNote(slot.note || "");
-  setMoveRow(String(slot.row));
-
-  if (slot.status === "mine") {
-    setModalMode("edit");
-  } else {
-    setModalMode("reserve");
-  }
-}
+  function openSlot(slot) {
+    if (slot.status === "reserved") {
+      showToast("この枠は予約済みです");
+      return;
+    }
 
     setSelectedSlot(slot);
     setNote(slot.note || "");
+    setMoveRow(String(slot.row));
 
     if (slot.status === "mine") {
       setModalMode("edit");
@@ -111,12 +109,12 @@ function openSlot(slot) {
     }
   }
 
-function closeModal() {
-  setSelectedSlot(null);
-  setNote("");
-  setMoveRow("");
-  setModalMode("reserve");
-}
+  function closeModal() {
+    setSelectedSlot(null);
+    setNote("");
+    setMoveRow("");
+    setModalMode("reserve");
+  }
 
   async function handleReserve() {
     if (!selectedSlot || !user) return;
@@ -142,29 +140,29 @@ function closeModal() {
     }
   }
 
-async function handleUpdate() {
-  if (!selectedSlot || !user) return;
+  async function handleUpdate() {
+    if (!selectedSlot || !user) return;
 
-  try {
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    await updateSlot({
-      row: selectedSlot.row,
-      targetRow: Number(moveRow || selectedSlot.row),
-      userId: user.userId,
-      note: note.trim(),
-    });
+      await updateSlot({
+        row: selectedSlot.row,
+        targetRow: Number(moveRow || selectedSlot.row),
+        userId: user.userId,
+        note: note.trim(),
+      });
 
-    await reloadSlots();
-    closeModal();
-    showToast("予約内容を変更しました");
-  } catch (error) {
-    console.error(error);
-    showToast(error.message || "変更に失敗しました");
-  } finally {
-    setLoading(false);
+      await reloadSlots();
+      closeModal();
+      showToast("予約内容を変更しました");
+    } catch (error) {
+      console.error(error);
+      showToast(error.message || "変更に失敗しました");
+    } finally {
+      setLoading(false);
+    }
   }
-}
 
   async function handleCancel() {
     if (!selectedSlot || !user) return;
@@ -328,13 +326,31 @@ async function handleUpdate() {
             <h2>{modalMode === "edit" ? "予約内容を変更" : "この枠を予約しますか？"}</h2>
             <p>
               {modalMode === "edit"
-                ? "備考の変更、または予約キャンセルができます。"
+                ? "空いている日付・時間への変更、備考変更、または予約キャンセルができます。"
                 : "備考があれば入力してください。"}
             </p>
 
             <div className="selected-slot">
-              {formatDate(selectedSlot.date)}　{selectedSlot.time}
+              現在：{formatDate(selectedSlot.date)}　{selectedSlot.time}
             </div>
+
+            {modalMode === "edit" && (
+              <>
+                <label htmlFor="moveRow">変更後の日付・時間</label>
+                <select
+                  id="moveRow"
+                  value={moveRow}
+                  onChange={(event) => setMoveRow(event.target.value)}
+                >
+                  {moveCandidates.map((slot) => (
+                    <option key={slot.row} value={slot.row}>
+                      {formatDate(slot.date)}　{slot.time}
+                      {slot.row === selectedSlot.row ? "（現在の予約）" : ""}
+                    </option>
+                  ))}
+                </select>
+              </>
+            )}
 
             <label htmlFor="note">備考</label>
             <textarea
