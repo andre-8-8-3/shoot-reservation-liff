@@ -15,3 +15,8 @@ const USER_COL_LINE_NAME = 2;
 const USER_COL_CAST_NAME = 3;
 const USER_COL_REGISTERED_AT = 4;
 const USER_COL_MEMO = 5;
+
+const ADMIN_COL_USER_ID = 1;
+const ADMIN_COL_NAME = 2;
+const ADMIN_COL_ROLE = 3;
+const ADMIN_COL_MEMO = 4;
