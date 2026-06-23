@@ -27,11 +27,24 @@ let mockSlots = dates.flatMap((date, dateIndex) => {
   });
 });
 
+const mockUsers = [
+  {
+    row: 2,
+    userId: "mock-user",
+    lineName: "テストユーザー",
+    castName: "",
+    displayName: "テストユーザー",
+    registeredAt: "2026/06/23 12:00:00",
+    memo: "",
+  },
+];
+
 export async function syncUserProfile(profile) {
   if (!CONFIG.GAS_URL) {
     return {
       ok: true,
       mock: true,
+      isAdmin: true,
       user: {
         userId: profile.userId,
         lineName: profile.displayName,
@@ -150,6 +163,84 @@ export async function cancelSlot(payload) {
   }
 
   return postToGas("cancel", payload);
+}
+
+export async function fetchAdminSummary(userId) {
+  if (!CONFIG.GAS_URL) {
+    const reservedCount = mockSlots.filter((slot) => slot.status === "mine").length;
+    const availableCount = mockSlots.filter((slot) => slot.status === "available").length;
+
+    return {
+      ok: true,
+      summary: {
+        userCount: mockUsers.length,
+        reservedCount,
+        availableCount,
+        totalSlots: mockSlots.length,
+      },
+      mock: true,
+    };
+  }
+
+  return getFromGas("adminSummary", userId);
+}
+
+export async function fetchAdminUsers(userId) {
+  if (!CONFIG.GAS_URL) {
+    return {
+      ok: true,
+      users: mockUsers,
+      mock: true,
+    };
+  }
+
+  return getFromGas("adminUsers", userId);
+}
+
+export async function fetchAdminReservations(userId) {
+  if (!CONFIG.GAS_URL) {
+    return {
+      ok: true,
+      reservations: mockSlots.map((slot) => ({
+        ...slot,
+        name: slot.status === "mine" ? "テストユーザー" : "",
+        originalName: slot.status === "mine" ? "テストユーザー" : "",
+        userId: slot.status === "mine" ? "mock-user" : "",
+        updatedAt: "",
+        status: slot.status === "mine" ? "reserved" : "available",
+      })),
+      mock: true,
+    };
+  }
+
+  return getFromGas("adminReservations", userId);
+}
+
+export async function updateCastName(payload) {
+  if (!CONFIG.GAS_URL) {
+    const target = mockUsers.find((user) => user.userId === payload.userId);
+
+    if (target) {
+      target.castName = payload.castName || "";
+      target.displayName = target.castName || target.lineName;
+    }
+
+    return { ok: true, user: target, mock: true };
+  }
+
+  return postToGas("updateCastName", payload);
+}
+
+async function getFromGas(action, userId) {
+  const url = `${CONFIG.GAS_URL}?action=${encodeURIComponent(action)}&userId=${encodeURIComponent(userId)}`;
+  const res = await fetch(url);
+  const json = await res.json();
+
+  if (!json.ok) {
+    throw new Error(json.message || "処理に失敗しました");
+  }
+
+  return json;
 }
 
 async function postToGas(action, payload) {
