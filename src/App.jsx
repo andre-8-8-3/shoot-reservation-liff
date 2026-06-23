@@ -5,6 +5,7 @@ import {
   reserveSlot,
   updateSlot,
   cancelSlot,
+  syncUserProfile,
 } from "./services/reservationApi";
 import { formatDate, groupByDate } from "./utils/dateUtils";
 import { filterSlots } from "./utils/reservationUtils";
@@ -52,16 +53,34 @@ export default function App() {
     try {
       setLoading(true);
 
-      const profile = await initLiffProfile();
+      const liffProfile = await initLiffProfile();
 
-      if (!profile) {
+      if (!liffProfile) {
         return;
       }
 
-      setUser(profile);
+      const syncedResult = await syncUserProfile(liffProfile);
+      const syncedUser = syncedResult.user || {};
+      const normalizedUser = {
+        ...liffProfile,
+        lineName: syncedUser.lineName || liffProfile.displayName,
+        castName: syncedUser.castName || "",
+        displayName: syncedUser.displayName || liffProfile.displayName,
+      };
 
-      const result = await fetchReservations(profile.userId);
+      setUser(normalizedUser);
+
+      const result = await fetchReservations(normalizedUser.userId);
       setSlots(result.slots);
+
+      if (result.user && result.user.displayName && result.user.displayName !== normalizedUser.displayName) {
+        setUser({
+          ...normalizedUser,
+          lineName: result.user.lineName || normalizedUser.lineName,
+          castName: result.user.castName || normalizedUser.castName,
+          displayName: result.user.displayName,
+        });
+      }
     } catch (error) {
       console.error(error);
       showToast(error.message || "読み込みに失敗しました");
@@ -78,6 +97,15 @@ export default function App() {
 
       const result = await fetchReservations(user.userId);
       setSlots(result.slots);
+
+      if (result.user && result.user.displayName) {
+        setUser((currentUser) => ({
+          ...currentUser,
+          lineName: result.user.lineName || currentUser.lineName,
+          castName: result.user.castName || currentUser.castName,
+          displayName: result.user.displayName,
+        }));
+      }
 
       showToast("最新の予約状況に更新しました");
     } catch (error) {
