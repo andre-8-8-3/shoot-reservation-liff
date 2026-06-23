@@ -85,6 +85,15 @@ function doPost(e) {
       });
     }
 
+    if (action === "createSlots") {
+      const result = createReservationSlots_(body);
+
+      return jsonOutput_({
+        ok: true,
+        result: result
+      });
+    }
+
     if (action === "reserve") {
       reserveSlot_(body);
 
