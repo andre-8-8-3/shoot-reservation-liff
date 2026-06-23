@@ -17,7 +17,35 @@ function doGet(e) {
 
       return jsonOutput_({
         ok: true,
-        user: getUserProfile_(userId)
+        user: getUserProfile_(userId),
+        isAdmin: isAdmin_(userId)
+      });
+    }
+
+    if (action === "adminSummary") {
+      const userId = e.parameter.userId || "";
+
+      return jsonOutput_({
+        ok: true,
+        summary: getAdminSummary_(userId)
+      });
+    }
+
+    if (action === "adminUsers") {
+      const userId = e.parameter.userId || "";
+
+      return jsonOutput_({
+        ok: true,
+        users: getAdminUsers_(userId)
+      });
+    }
+
+    if (action === "adminReservations") {
+      const userId = e.parameter.userId || "";
+
+      return jsonOutput_({
+        ok: true,
+        reservations: getAdminReservations_(userId)
       });
     }
 
@@ -40,6 +68,16 @@ function doPost(e) {
 
     if (action === "syncUser") {
       const user = syncUser_(body);
+
+      return jsonOutput_({
+        ok: true,
+        user: user,
+        isAdmin: isAdmin_(user.userId)
+      });
+    }
+
+    if (action === "updateCastName") {
+      const user = updateCastName_(body);
 
       return jsonOutput_({
         ok: true,
