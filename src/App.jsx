@@ -142,28 +142,29 @@ function closeModal() {
     }
   }
 
-  async function handleUpdate() {
-    if (!selectedSlot || !user) return;
+async function handleUpdate() {
+  if (!selectedSlot || !user) return;
 
-    try {
-      setLoading(true);
+  try {
+    setLoading(true);
 
-      await updateSlot({
-        row: selectedSlot.row,
-        userId: user.userId,
-        note: note.trim(),
-      });
+    await updateSlot({
+      row: selectedSlot.row,
+      targetRow: Number(moveRow || selectedSlot.row),
+      userId: user.userId,
+      note: note.trim(),
+    });
 
-      await reloadSlots();
-      closeModal();
-      showToast("予約内容を変更しました");
-    } catch (error) {
-      console.error(error);
-      showToast(error.message || "変更に失敗しました");
-    } finally {
-      setLoading(false);
-    }
+    await reloadSlots();
+    closeModal();
+    showToast("予約内容を変更しました");
+  } catch (error) {
+    console.error(error);
+    showToast(error.message || "変更に失敗しました");
+  } finally {
+    setLoading(false);
   }
+}
 
   async function handleCancel() {
     if (!selectedSlot || !user) return;
