@@ -18,6 +18,9 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      VITE_LIFF_ID: 2010472508-NFGPja2f
+      VITE_GAS_URL: https://script.google.com/macros/s/AKfycbxa4RFjs4gBVqRvOYSz6oXzMbXRVWrri-Ox6Rn1HLnLgnfCyJFWUIZ_V_BVN-SdEA1t/exec
 
     steps:
       - name: Checkout
