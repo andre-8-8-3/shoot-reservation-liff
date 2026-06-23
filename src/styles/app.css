@@ -9,9 +9,19 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Noto Sans JP", sans-serif;
 }
 
+button,
+select,
+textarea {
+  font-family: inherit;
+}
+
 button {
   border: none;
-  font-family: inherit;
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
 }
 
 .app {
@@ -66,6 +76,10 @@ button {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 8px;
+}
+
+.summary.compact {
+  grid-template-columns: repeat(2, 1fr);
 }
 
 .summary div {
@@ -176,26 +190,6 @@ button {
   border-left: 6px solid #22c55e;
 }
 
-.slot-card.reserved {
-  border-left: 6px solid #ef4444;
-  background: #fff7f7;
-}
-
-.slot-card.reserved button {
-  background: #f3f4f6;
-  color: #9ca3af;
-}
-
-.slot-card.mine {
-  border-left: 6px solid #3b82f6;
-  background: #eff6ff;
-}
-
-.slot-card.mine button {
-  background: #dbeafe;
-  color: #1d4ed8;
-}
-
 .tabs {
   display: flex;
   gap: 8px;
@@ -244,8 +238,36 @@ button {
   color: #1e3a8a;
 }
 
+.my-reservation-item {
+  padding: 12px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
 .my-reservation-item + .my-reservation-item {
   margin-top: 10px;
+}
+
+.my-reservation-item.with-action {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.my-reservation-item.with-action strong {
+  display: block;
+  font-size: 15px;
+}
+
+.my-reservation-item.with-action button {
+  flex-shrink: 0;
+  padding: 9px 14px;
+  border-radius: 999px;
+  background: #1d4ed8;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 900;
 }
 
 .note {
@@ -326,23 +348,31 @@ button {
 
 .modal label {
   display: block;
-  margin-bottom: 7px;
+  margin: 12px 0 7px;
   font-size: 13px;
   font-weight: 900;
   color: #374151;
 }
 
-.modal textarea {
+.modal textarea,
+.modal select {
   width: 100%;
-  min-height: 96px;
   padding: 12px;
   border: 1px solid #d1d5db;
   border-radius: 15px;
   font-size: 15px;
   line-height: 1.6;
   outline: none;
-  resize: vertical;
   background: #ffffff;
+}
+
+.modal textarea {
+  min-height: 96px;
+  resize: vertical;
+}
+
+.modal select {
+  min-height: 48px;
 }
 
 .modal-actions {
