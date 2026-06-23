@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import SlotCreator from "./SlotCreator";
 import {
   fetchAdminSummary,
   fetchAdminUsers,
@@ -12,7 +13,7 @@ export default function AdminPanel({ user, onBack, showToast }) {
   const [summary, setSummary] = useState(null);
   const [users, setUsers] = useState([]);
   const [reservations, setReservations] = useState([]);
-  const [activeTab, setActiveTab] = useState("users");
+  const [activeTab, setActiveTab] = useState("slots");
   const [loading, setLoading] = useState(true);
 
   const reservedReservations = useMemo(() => {
@@ -98,7 +99,7 @@ export default function AdminPanel({ user, onBack, showToast }) {
         <div>
           <span className="admin-label">ADMIN</span>
           <h1>管理画面</h1>
-          <p>ユーザー名の管理と予約状況を確認できます。</p>
+          <p>予約枠の作成、ユーザー名管理、予約状況確認ができます。</p>
         </div>
         <button type="button" onClick={onBack}>予約画面へ</button>
       </header>
@@ -123,13 +124,20 @@ export default function AdminPanel({ user, onBack, showToast }) {
           </div>
         </section>
 
-        <div className="admin-tabs">
+        <div className="admin-tabs three">
+          <button
+            type="button"
+            className={activeTab === "slots" ? "active" : ""}
+            onClick={() => setActiveTab("slots")}
+          >
+            枠作成
+          </button>
           <button
             type="button"
             className={activeTab === "users" ? "active" : ""}
             onClick={() => setActiveTab("users")}
           >
-            ユーザー一覧
+            ユーザー
           </button>
           <button
             type="button"
@@ -139,6 +147,15 @@ export default function AdminPanel({ user, onBack, showToast }) {
             予約一覧
           </button>
         </div>
+
+        {activeTab === "slots" && (
+          <SlotCreator
+            user={user}
+            onCreated={loadAdminData}
+            showToast={showToast}
+            setLoading={setLoading}
+          />
+        )}
 
         {activeTab === "users" && (
           <section className="admin-card">
