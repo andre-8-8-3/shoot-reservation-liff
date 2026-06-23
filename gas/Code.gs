@@ -94,6 +94,15 @@ function doPost(e) {
       });
     }
 
+    if (action === "deleteSlots") {
+      const result = deleteReservationSlots_(body);
+
+      return jsonOutput_({
+        ok: true,
+        result: result
+      });
+    }
+
     if (action === "reserve") {
       reserveSlot_(body);
 
