@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import AdminPanel from "./components/AdminPanel";
 import { initLiffProfile } from "./services/liffService";
 import {
   fetchReservations,
@@ -12,6 +13,8 @@ import { filterSlots } from "./utils/reservationUtils";
 
 export default function App() {
   const [user, setUser] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [showAdmin, setShowAdmin] = useState(false);
   const [slots, setSlots] = useState([]);
   const [filter, setFilter] = useState("all");
   const [selectedSlot, setSelectedSlot] = useState(null);
@@ -69,6 +72,7 @@ export default function App() {
       };
 
       setUser(normalizedUser);
+      setIsAdmin(Boolean(syncedResult.isAdmin));
 
       const result = await fetchReservations(normalizedUser.userId);
       setSlots(result.slots);
@@ -219,6 +223,19 @@ export default function App() {
     }, 2200);
   }
 
+  if (showAdmin && isAdmin && user) {
+    return (
+      <>
+        <AdminPanel
+          user={user}
+          onBack={() => setShowAdmin(false)}
+          showToast={showToast}
+        />
+        {toast && <div className="toast">{toast}</div>}
+      </>
+    );
+  }
+
   return (
     <div className="app">
       <header className="header">
@@ -231,7 +248,12 @@ export default function App() {
         </div>
 
         <div className="user-badge">
-          {user ? `${user.displayName} さん` : "読み込み中"}
+          <span>{user ? `${user.displayName} さん` : "読み込み中"}</span>
+          {isAdmin && (
+            <button className="admin-button" type="button" onClick={() => setShowAdmin(true)}>
+              管理
+            </button>
+          )}
         </div>
       </header>
 
