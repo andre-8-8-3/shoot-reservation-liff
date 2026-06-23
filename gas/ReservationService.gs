@@ -6,6 +6,7 @@ function getReservations_(userId) {
     return [];
   }
 
+  const normalizedUserId = String(userId || "").trim();
   const values = sheet.getRange(2, 1, lastRow - 1, 6).getDisplayValues();
 
   return values
@@ -28,7 +29,7 @@ function getReservations_(userId) {
       const reservedUserId = String(row[COL_USER_ID - 1] || "").trim();
 
       const isReserved = Boolean(name);
-      const isMine = isReserved && reservedUserId === userId;
+      const isMine = isReserved && reservedUserId === normalizedUserId;
 
       return {
         row: item.row,
@@ -37,6 +38,11 @@ function getReservations_(userId) {
         status: !isReserved ? "available" : isMine ? "mine" : "reserved",
         note: isMine ? note : ""
       };
+    })
+    .filter(function(slot) {
+      // 他人の予約済み枠はLIFF側へ返さない。
+      // 画面には「空き枠」と「自分の予約」だけを表示する。
+      return slot.status === "available" || slot.status === "mine";
     });
 }
 
