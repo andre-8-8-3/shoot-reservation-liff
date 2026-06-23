@@ -27,11 +27,38 @@ let mockSlots = dates.flatMap((date, dateIndex) => {
   });
 });
 
+export async function syncUserProfile(profile) {
+  if (!CONFIG.GAS_URL) {
+    return {
+      ok: true,
+      mock: true,
+      user: {
+        userId: profile.userId,
+        lineName: profile.displayName,
+        castName: "",
+        displayName: profile.displayName,
+      },
+    };
+  }
+
+  return postToGas("syncUser", {
+    userId: profile.userId,
+    displayName: profile.displayName,
+    lineName: profile.displayName,
+  });
+}
+
 export async function fetchReservations(userId) {
   if (!CONFIG.GAS_URL) {
     return {
       ok: true,
       slots: mockSlots,
+      user: {
+        userId,
+        lineName: "テストユーザー",
+        castName: "",
+        displayName: "テストユーザー",
+      },
       mock: true,
     };
   }
