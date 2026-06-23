@@ -7,7 +7,17 @@ function doGet(e) {
 
       return jsonOutput_({
         ok: true,
-        slots: getReservations_(userId)
+        slots: getReservations_(userId),
+        user: getUserProfile_(userId)
+      });
+    }
+
+    if (action === "profile") {
+      const userId = e.parameter.userId || "";
+
+      return jsonOutput_({
+        ok: true,
+        user: getUserProfile_(userId)
       });
     }
 
@@ -27,6 +37,15 @@ function doPost(e) {
   try {
     const action = e.parameter.action;
     const body = JSON.parse(e.postData.contents || "{}");
+
+    if (action === "syncUser") {
+      const user = syncUser_(body);
+
+      return jsonOutput_({
+        ok: true,
+        user: user
+      });
+    }
 
     if (action === "reserve") {
       reserveSlot_(body);
