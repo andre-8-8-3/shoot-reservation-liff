@@ -1,36 +1,31 @@
 import { CONFIG } from "../config/config";
 
-let mockSlots = [
-  { row: 2, date: "2026/07/01", time: "13:00", status: "available", note: "" },
-  { row: 3, date: "2026/07/01", time: "14:00", status: "available", note: "" },
-  { row: 4, date: "2026/07/01", time: "15:00", status: "reserved", note: "" },
-  { row: 5, date: "2026/07/01", time: "16:00", status: "available", note: "" },
-  { row: 6, date: "2026/07/01", time: "17:00", status: "available", note: "" },
+const dates = ["2026/07/01", "2026/07/08", "2026/07/15", "2026/08/05", "2026/08/27"];
+const times = ["13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00"];
 
-  { row: 7, date: "2026/07/08", time: "13:00", status: "reserved", note: "" },
-  { row: 8, date: "2026/07/08", time: "14:00", status: "available", note: "" },
-  { row: 9, date: "2026/07/08", time: "15:00", status: "mine", note: "白衣装で撮影希望" },
-  { row: 10, date: "2026/07/08", time: "16:00", status: "available", note: "" },
-  { row: 11, date: "2026/07/08", time: "17:00", status: "available", note: "" },
+let mockSlots = dates.flatMap((date, dateIndex) => {
+  return times.map((time, timeIndex) => {
+    const row = 2 + dateIndex * times.length + timeIndex;
 
-  { row: 12, date: "2026/07/15", time: "13:00", status: "available", note: "" },
-  { row: 13, date: "2026/07/15", time: "14:00", status: "available", note: "" },
-  { row: 14, date: "2026/07/15", time: "15:00", status: "available", note: "" },
-  { row: 15, date: "2026/07/15", time: "16:00", status: "reserved", note: "" },
-  { row: 16, date: "2026/07/15", time: "17:00", status: "available", note: "" },
+    if (date === "2026/07/01" && time === "13:00") {
+      return {
+        row,
+        date,
+        time,
+        status: "mine",
+        note: "白衣装で撮影希望",
+      };
+    }
 
-  { row: 17, date: "2026/08/05", time: "13:00", status: "available", note: "" },
-  { row: 18, date: "2026/08/05", time: "14:00", status: "available", note: "" },
-  { row: 19, date: "2026/08/05", time: "15:00", status: "available", note: "" },
-  { row: 20, date: "2026/08/05", time: "16:00", status: "available", note: "" },
-  { row: 21, date: "2026/08/05", time: "17:00", status: "available", note: "" },
-
-  { row: 22, date: "2026/08/27", time: "13:00", status: "available", note: "" },
-  { row: 23, date: "2026/08/27", time: "14:00", status: "reserved", note: "" },
-  { row: 24, date: "2026/08/27", time: "15:00", status: "available", note: "" },
-  { row: 25, date: "2026/08/27", time: "16:00", status: "available", note: "" },
-  { row: 26, date: "2026/08/27", time: "17:00", status: "available", note: "" },
-];
+    return {
+      row,
+      date,
+      time,
+      status: "available",
+      note: "",
+    };
+  });
+});
 
 export async function fetchReservations(userId) {
   if (!CONFIG.GAS_URL) {
@@ -72,13 +67,38 @@ export async function reserveSlot(payload) {
 
 export async function updateSlot(payload) {
   if (!CONFIG.GAS_URL) {
-    mockSlots = mockSlots.map((slot) => {
-      if (slot.row !== payload.row) return slot;
+    const sourceSlot = mockSlots.find((slot) => slot.row === payload.row);
+    const targetRow = Number(payload.targetRow || payload.row);
 
-      return {
-        ...slot,
-        note: payload.note || "",
-      };
+    if (!sourceSlot) {
+      throw new Error("変更元の予約が見つかりません");
+    }
+
+    mockSlots = mockSlots.map((slot) => {
+      if (payload.row === targetRow && slot.row === payload.row) {
+        return {
+          ...slot,
+          note: payload.note || "",
+        };
+      }
+
+      if (slot.row === payload.row) {
+        return {
+          ...slot,
+          status: "available",
+          note: "",
+        };
+      }
+
+      if (slot.row === targetRow) {
+        return {
+          ...slot,
+          status: "mine",
+          note: payload.note || "",
+        };
+      }
+
+      return slot;
     });
 
     return { ok: true, mock: true };
