@@ -62,28 +62,50 @@ export default function App() {
         return;
       }
 
-      const syncedResult = await syncUserProfile(liffProfile);
-      const syncedUser = syncedResult.user || {};
-      const normalizedUser = {
+      const fallbackUser = {
         ...liffProfile,
-        lineName: syncedUser.lineName || liffProfile.displayName,
-        castName: syncedUser.castName || "",
-        displayName: syncedUser.displayName || liffProfile.displayName,
+        lineName: liffProfile.displayName,
+        castName: "",
+        displayName: liffProfile.displayName,
       };
 
-      setUser(normalizedUser);
-      setIsAdmin(Boolean(syncedResult.isAdmin));
+      setUser(fallbackUser);
 
-      const result = await fetchReservations(normalizedUser.userId);
-      setSlots(result.slots);
+      let normalizedUser = fallbackUser;
 
-      if (result.user && result.user.displayName && result.user.displayName !== normalizedUser.displayName) {
-        setUser({
-          ...normalizedUser,
-          lineName: result.user.lineName || normalizedUser.lineName,
-          castName: result.user.castName || normalizedUser.castName,
-          displayName: result.user.displayName,
-        });
+      try {
+        const syncedResult = await syncUserProfile(liffProfile);
+        const syncedUser = syncedResult.user || {};
+
+        normalizedUser = {
+          ...liffProfile,
+          lineName: syncedUser.lineName || liffProfile.displayName,
+          castName: syncedUser.castName || "",
+          displayName: syncedUser.displayName || liffProfile.displayName,
+        };
+
+        setUser(normalizedUser);
+        setIsAdmin(Boolean(syncedResult.isAdmin));
+      } catch (syncError) {
+        console.error(syncError);
+        showToast(syncError.message || "ユーザー同期に失敗しました");
+      }
+
+      try {
+        const result = await fetchReservations(normalizedUser.userId);
+        setSlots(result.slots || []);
+
+        if (result.user && result.user.displayName && result.user.displayName !== normalizedUser.displayName) {
+          setUser({
+            ...normalizedUser,
+            lineName: result.user.lineName || normalizedUser.lineName,
+            castName: result.user.castName || normalizedUser.castName,
+            displayName: result.user.displayName,
+          });
+        }
+      } catch (reservationError) {
+        console.error(reservationError);
+        showToast(reservationError.message || "予約一覧の取得に失敗しました");
       }
     } catch (error) {
       console.error(error);
