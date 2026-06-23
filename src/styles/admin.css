@@ -1,0 +1,245 @@
+.admin-app {
+  background: #eef2f7;
+}
+
+.admin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 24px 18px 28px;
+  color: #ffffff;
+  background: linear-gradient(135deg, #020617, #1e293b 58%, #334155);
+  border-radius: 0 0 28px 28px;
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.28);
+}
+
+.admin-header h1 {
+  margin: 6px 0 0;
+  font-size: 25px;
+  font-weight: 900;
+}
+
+.admin-header p {
+  margin: 8px 0 0;
+  color: rgba(255, 255, 255, 0.76);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.admin-header button {
+  flex-shrink: 0;
+  padding: 9px 13px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.admin-label {
+  display: inline-flex;
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: rgba(96, 165, 250, 0.2);
+  color: #bfdbfe;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.admin-content {
+  padding-bottom: 28px;
+}
+
+.admin-summary {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.admin-summary div {
+  padding: 14px 10px;
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.07);
+  text-align: center;
+}
+
+.admin-summary strong {
+  display: block;
+  color: #0f172a;
+  font-size: 24px;
+  font-weight: 900;
+}
+
+.admin-summary span {
+  display: block;
+  margin-top: 4px;
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.admin-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.admin-tabs button {
+  padding: 12px;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #475569;
+  font-size: 13px;
+  font-weight: 900;
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.06);
+}
+
+.admin-tabs button.active {
+  background: #0f172a;
+  color: #ffffff;
+}
+
+.admin-card {
+  margin-top: 16px;
+  padding: 15px;
+  border-radius: 22px;
+  background: #ffffff;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.07);
+}
+
+.admin-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.admin-card-head h2 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.admin-card-head button {
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #334155;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.admin-empty {
+  padding: 24px 12px;
+  border-radius: 18px;
+  background: #f8fafc;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.7;
+  text-align: center;
+}
+
+.admin-user-list,
+.admin-reservation-list {
+  display: grid;
+  gap: 10px;
+}
+
+.admin-user-row,
+.admin-reservation-row {
+  padding: 13px;
+  border-radius: 18px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.admin-user-main strong,
+.admin-reservation-row strong {
+  display: block;
+  color: #0f172a;
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.admin-user-main span,
+.admin-reservation-row span {
+  display: block;
+  margin-top: 4px;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.admin-user-main small,
+.admin-reservation-row small {
+  display: block;
+  margin-top: 4px;
+  color: #94a3b8;
+  font-size: 11px;
+}
+
+.admin-user-edit {
+  margin-top: 11px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  align-items: end;
+}
+
+.admin-user-edit label {
+  grid-column: 1 / -1;
+  color: #334155;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.admin-user-edit input {
+  width: 100%;
+  min-height: 42px;
+  padding: 10px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 13px;
+  background: #ffffff;
+  color: #0f172a;
+  font-size: 14px;
+  outline: none;
+}
+
+.admin-user-edit button {
+  min-height: 42px;
+  padding: 0 15px;
+  border-radius: 13px;
+  background: #0f172a;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.admin-reservation-row p {
+  margin: 8px 0 0;
+  padding: 9px 10px;
+  border-radius: 13px;
+  background: #fff7ed;
+  color: #9a3412;
+  font-size: 12px;
+  line-height: 1.6;
+  font-weight: 700;
+}
+
+.admin-button {
+  margin-top: 8px;
+  width: 100%;
+  padding: 9px 10px;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #111827;
+  font-size: 12px;
+  font-weight: 900;
+}
