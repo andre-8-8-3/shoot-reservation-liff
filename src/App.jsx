@@ -7,7 +7,7 @@ import {
   cancelSlot,
 } from "./services/reservationApi";
 import { formatDate, groupByDate } from "./utils/dateUtils";
-import { filterSlots, getSlotView } from "./utils/reservationUtils";
+import { filterSlots } from "./utils/reservationUtils";
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -20,25 +20,21 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState("");
 
-  const summary = useMemo(() => {
-    return {
-      total: slots.length,
-      available: slots.filter((slot) => slot.status === "available").length,
-      mine: slots.filter((slot) => slot.status === "mine").length,
-    };
-  }, [slots]);
-
   const mySlots = useMemo(() => {
     return slots.filter((slot) => slot.status === "mine");
   }, [slots]);
 
-  const filteredSlots = useMemo(() => {
-    return filterSlots(slots, filter);
-  }, [slots, filter]);
+  const availableSlots = useMemo(() => {
+    return slots.filter((slot) => slot.status === "available");
+  }, [slots]);
+
+  const filteredAvailableSlots = useMemo(() => {
+    return filterSlots(availableSlots, filter);
+  }, [availableSlots, filter]);
 
   const groupedSlots = useMemo(() => {
-    return groupByDate(filteredSlots);
-  }, [filteredSlots]);
+    return groupByDate(filteredAvailableSlots);
+  }, [filteredAvailableSlots]);
 
   const moveCandidates = useMemo(() => {
     if (!selectedSlot) return [];
@@ -92,21 +88,18 @@ export default function App() {
     }
   }
 
-  function openSlot(slot) {
-    if (slot.status === "reserved") {
-      showToast("この枠は予約済みです");
-      return;
-    }
-
+  function openReserveModal(slot) {
     setSelectedSlot(slot);
     setNote(slot.note || "");
     setMoveRow(String(slot.row));
+    setModalMode("reserve");
+  }
 
-    if (slot.status === "mine") {
-      setModalMode("edit");
-    } else {
-      setModalMode("reserve");
-    }
+  function openEditModal(slot) {
+    setSelectedSlot(slot);
+    setNote(slot.note || "");
+    setMoveRow(String(slot.row));
+    setModalMode("edit");
   }
 
   function closeModal() {
@@ -215,45 +208,23 @@ export default function App() {
       </header>
 
       <main className="content">
-        <section className="summary">
+        <section className="summary compact">
           <div>
-            <strong>{summary.total}</strong>
-            <span>全枠</span>
-          </div>
-          <div>
-            <strong>{summary.available}</strong>
+            <strong>{availableSlots.length}</strong>
             <span>空き枠</span>
           </div>
           <div>
-            <strong>{summary.mine}</strong>
-            <span>自分の予約</span>
+            <strong>{mySlots.length}</strong>
+            <span>あなたの予約</span>
           </div>
         </section>
 
         <section className="notice">
           <strong>予約ルール</strong>
           <p>
-            緑の枠は予約できます。赤の枠は予約済みです。他キャスト名は表示されません。
+            表示される一覧は予約可能な空き枠のみです。自分の予約は上部の「あなたの予約」から変更・キャンセルできます。
           </p>
         </section>
-
-        <div className="tabs">
-          <button className={filter === "all" ? "active" : ""} onClick={() => setFilter("all")}>
-            すべて
-          </button>
-          <button className={filter === "available" ? "active" : ""} onClick={() => setFilter("available")}>
-            空き枠のみ
-          </button>
-          <button className={filter === "mine" ? "active" : ""} onClick={() => setFilter("mine")}>
-            自分の予約
-          </button>
-          <button className={filter === "july" ? "active" : ""} onClick={() => setFilter("july")}>
-            7月
-          </button>
-          <button className={filter === "august" ? "active" : ""} onClick={() => setFilter("august")}>
-            8月
-          </button>
-        </div>
 
         {mySlots.length > 0 && (
           <section className="my-box">
@@ -264,51 +235,61 @@ export default function App() {
 
             <div className="my-box-body">
               {mySlots.map((slot) => (
-                <div key={slot.row} className="my-reservation-item">
-                  {formatDate(slot.date)}　{slot.time}
-                  {slot.note && <div className="note">備考：{slot.note}</div>}
+                <div key={slot.row} className="my-reservation-item with-action">
+                  <div>
+                    <strong>{formatDate(slot.date)}　{slot.time}</strong>
+                    {slot.note && <div className="note">備考：{slot.note}</div>}
+                  </div>
+                  <button type="button" onClick={() => openEditModal(slot)}>
+                    変更
+                  </button>
                 </div>
               ))}
             </div>
           </section>
         )}
 
-        {filteredSlots.length === 0 ? (
+        <div className="tabs">
+          <button className={filter === "all" ? "active" : ""} onClick={() => setFilter("all")}>
+            すべて
+          </button>
+          <button className={filter === "july" ? "active" : ""} onClick={() => setFilter("july")}>
+            7月
+          </button>
+          <button className={filter === "august" ? "active" : ""} onClick={() => setFilter("august")}>
+            8月
+          </button>
+        </div>
+
+        {filteredAvailableSlots.length === 0 ? (
           <div className="empty">
-            表示できる予約枠がありません。<br />
+            予約できる空き枠がありません。<br />
             条件を変更して確認してください。
           </div>
         ) : (
           Object.keys(groupedSlots).map((date) => {
             const dateSlots = groupedSlots[date];
-            const availableCount = dateSlots.filter((slot) => slot.status === "available").length;
 
             return (
               <section className="date-section" key={date}>
                 <div className="date-head">
                   <h2>{formatDate(date)}</h2>
-                  <span>
-                    {dateSlots.length}枠中 {availableCount}枠空き
-                  </span>
+                  <span>{dateSlots.length}枠空き</span>
                 </div>
 
                 <div className="slot-list">
-                  {dateSlots.map((slot) => {
-                    const view = getSlotView(slot);
-
-                    return (
-                      <div className={`slot-card ${view.className}`} key={slot.row}>
-                        <div>
-                          <strong>{slot.time}</strong>
-                          <p>{view.meta}</p>
-                        </div>
-
-                        <button disabled={view.disabled} onClick={() => openSlot(slot)}>
-                          {view.button}
-                        </button>
+                  {dateSlots.map((slot) => (
+                    <div className="slot-card available" key={slot.row}>
+                      <div>
+                        <strong>{slot.time}</strong>
+                        <p>予約できます</p>
                       </div>
-                    );
-                  })}
+
+                      <button type="button" onClick={() => openReserveModal(slot)}>
+                        予約
+                      </button>
+                    </div>
+                  ))}
                 </div>
               </section>
             );
